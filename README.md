@@ -68,7 +68,7 @@ openDecision.init (tree, "publish-div", customStyles);
 ```
 You don't need to override all elements, just select the ones you want to modify.
 ```javascript
-openDecision.init (tree, "publish-div", {backButton: "hide-el, restartButton: "btn-warning"});
+openDecision.init (tree, "publish-div", {backButton: "hide-el", restartButton: "btn-warning"});
 
 ```
 
