@@ -29,7 +29,7 @@ The default styling currrently uses bootstrap. Load it by using:
 ```html
 <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
 ```
-Let's use the demo tree for testing. **At the moment, trees exported by the builder must be assigned to a variable. Click [here](#known-issues) for more information.**
+Let's use the demo tree for testing. **At the moment, trees exported by the builder must be assigned to a variable. Click [here](#known-issues) for more information.** To do so, simply open the exported .json file with any plain text editor (don't use word :D) and add "tree =" before the rest.
 ```html
 <script type="text/javascript" src="test.json"></script>
 ```
@@ -67,14 +67,33 @@ openDecision.init (tree, "publish-div", customStyles);
 
 ```
 You don't need to override all elements, just select the ones you want to modify.
-```
+```javascript
 openDecision.init (tree, "publish-div", {backButton: "hide-el, restartButton: "btn-warning"});
 
 ```
 
 
 ## Known Issues
-No validation: Currently no validation is carried out on the number input field. Will be fixed soon.
+- Storing trees in a variable: Before you can use a tree exported by the builder, you need to store it in a variable. Simply open the exported .json file with any plain text editor (don't use word :D) and add "tree =" before the rest. It should look like this:
+```javascript
+tree =  {
+  "header": {
+    "version": 0.1,
+    "build_date": "2020-04-03",
+    "tree_name": "Test",
+    "tree_slug": "test",
+    "start_node": "begruung",
+    "vars": {}
+  },
+  "ausprobieren": {
+  
+   ...
+   
+   
+   }
+
+```
+- No validation: Currently no validation is carried out on the number input field. Will be fixed soon.
 
 ## Built with
 - JavaScript
