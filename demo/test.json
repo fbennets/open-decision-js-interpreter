@@ -1,0 +1,164 @@
+tree = {
+  "header": {
+    "version": 0.1,
+    "build_date": "2020-04-03",
+    "tree_name": "Test",
+    "tree_slug": "test",
+    "start_node": "begruung",
+    "vars": {}
+  },
+  "ausprobieren": {
+    "name": "Ausprobieren",
+    "text": "<p>Gib mal deine Daten bitte. Einfach so.</p>",
+    "inputs": [
+      {
+        "type": "free_text",
+        "validation": "short_text",
+        "label": "Vorname",
+        "id": "vorname"
+      },
+      {
+        "type": "free_text",
+        "validation": "short_text",
+        "label": "Nachname",
+        "id": "nachname"
+      }
+    ],
+    "rules": {},
+    "destination": {
+      "default": "toll-weiter-so"
+    },
+    "action": {}
+  },
+  "langweile-level": {
+    "name": "Langweile Level",
+    "text": "<p>Wie hoch ist deine Langweile von 1-10?</p>",
+    "inputs": [
+      {
+        "type": "number",
+        "label": ""
+      }
+    ],
+    "rules": {
+      "if": [
+        {
+          "<": [
+            {
+              "var": "a"
+            },
+            5.0
+          ]
+        },
+        "0",
+        {
+          ">=": [
+            {
+              "var": "a"
+            },
+            5.0
+          ]
+        },
+        "1"
+      ]
+    },
+    "destination": {
+      "0": "nicht-sehr-langweilig",
+      "1": "sehr-langweilig"
+    },
+    "action": {}
+  },
+  "begruung": {
+    "name": "Begr\u00fc\u00dfung",
+    "text": "<p>Hallo was geht?</p>",
+    "inputs": [
+      {
+        "type": "button",
+        "display_as": "button",
+        "label": "",
+        "options": [
+          "Wollte das hier mal ausprobieren.",
+          "Mir ist langweilig"
+        ]
+      }
+    ],
+    "rules": {},
+    "destination": {
+      "0": "ausprobieren",
+      "1": "langweile-level"
+    },
+    "action": {}
+  },
+  "nicht-sehr-langweilig": {
+    "name": "Nicht sehr langweilig",
+    "text": "<p><strong>Wo</strong> ist dann das <abbr title=\"Ernsthafte Herausforderung, f\u00fcr die du meine Hilfe brauchst.\">Problem</abbr>?</p>",
+    "inputs": [],
+    "rules": {},
+    "destination": {},
+    "action": {}
+  },
+  "sehr-langweilig": {
+    "name": "Sehr langweilig",
+    "text": "<p><b>[[langweile-level]]</b> ist nicht ohne. Was davon hast du denn probiert?</p>",
+    "inputs": [
+      {
+        "type": "list",
+        "label": "",
+        "options": [
+          "Buch lesen",
+          "Coden lernen",
+          "Alkohol",
+          "Netflix"
+        ]
+      }
+    ],
+    "rules": {
+      "if": [
+        {
+          "in": [
+            {
+              "var": "a"
+            },
+            [
+              "Buch lesen",
+              "Coden lernen"
+            ]
+          ]
+        },
+        "0",
+        {
+          "in": [
+            {
+              "var": "a"
+            },
+            [
+              "Alkohol",
+              "Netflix"
+            ]
+          ]
+        },
+        "1"
+      ]
+    },
+    "destination": {
+      "0": "toll-weiter-so",
+      "1": "das-kannst-du-besser"
+    },
+    "action": {}
+  },
+  "toll-weiter-so": {
+    "name": "Toll, weiter so!",
+    "text": "Toll [[ausprobieren.vorname]], weiter so!",
+    "inputs": [],
+    "rules": {},
+    "destination": {},
+    "action": {}
+  },
+  "das-kannst-du-besser": {
+    "name": "das kannst du besser",
+    "text": "<p>Ich bin dezent entt&auml;uscht. Mach mal was <abbr title=\"DISNEY + IST NICHTS VERN\u00dcFTIGES!\">Vern&uuml;ftiges</abbr>.</p>",
+    "inputs": [],
+    "rules": {},
+    "destination": {},
+    "action": {}
+  }
+}

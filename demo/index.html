@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+<title>Demo</title>
+<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <h1 id='title'></h1>
+
+<div id="publish-div">
+</div>
+
+<script type="text/javascript" src="logic.js"></script>
+<script type="text/javascript" src="../od-js-interpreter-es6.js"></script>
+<script type="text/javascript" src="test.json"></script>
+<script type="text/javascript">
+
+  document.addEventListener("DOMContentLoaded", function(){
+openDecision.init (tree, "publish-div", {answerButton:"btn btn-primary ml-2 big-font"});
+})
+</script>
+</body>
+</html>
