@@ -1,38 +1,15 @@
 tree = {
   "header": {
     "version": 0.1,
-    "build_date": "2020-04-03",
-    "tree_name": "Test",
-    "tree_slug": "test",
-    "start_node": "begruung",
+    "build_date": "2020-04-30",
+    "tree_name": "Beschwerde R\u00fccklastschrift",
+    "tree_slug": "beschwerde-rucklastschrift",
+    "start_node": "gebuhrenhohe",
     "vars": {}
   },
-  "ausprobieren": {
-    "name": "Ausprobieren",
-    "text": "<p>Gib mal deine Daten bitte. Einfach so.</p>",
-    "inputs": [
-      {
-        "type": "free_text",
-        "validation": "short_text",
-        "label": "Vorname",
-        "id": "vorname"
-      },
-      {
-        "type": "free_text",
-        "validation": "short_text",
-        "label": "Nachname",
-        "id": "nachname"
-      }
-    ],
-    "rules": {},
-    "destination": {
-      "default": "toll-weiter-so"
-    },
-    "action": {}
-  },
-  "langweile-level": {
-    "name": "Langweile Level",
-    "text": "<p>Wie hoch ist deine Langweile von 1-10?</p>",
+  "gebuhrenhohe": {
+    "name": "Geb\u00fchrenh\u00f6he",
+    "text": "<p>Wie hoch sind die von Ihnen geforderten Geb&uuml;hren?</p>\n\n<p>Bitte geben Sie eine Zahl in Euro, gegebenfalls durch ein Komma getrennt,&nbsp;ein.</p>",
     "inputs": [
       {
         "type": "number",
@@ -42,72 +19,85 @@ tree = {
     "rules": {
       "if": [
         {
-          "<": [
+          "<=": [
             {
               "var": "a"
             },
-            5.0
+            4.0
           ]
         },
         "0",
         {
-          ">=": [
+          ">": [
             {
               "var": "a"
             },
-            5.0
+            4.0
           ]
         },
         "1"
       ]
     },
     "destination": {
-      "0": "nicht-sehr-langweilig",
-      "1": "sehr-langweilig"
+      "0": "angemessen",
+      "1": "ankundigung"
     },
     "action": {}
   },
-  "begruung": {
-    "name": "Begr\u00fc\u00dfung",
-    "text": "<p>Hallo was geht?</p>",
+  "ankundigung": {
+    "name": "Ank\u00fcndigung",
+    "text": "<p>Wurde die Lastschrift vorher durch eine Rechnung angek&uuml;ndigt oder zieht die Firma regelm&auml;&szlig;ig Geld ein?</p>",
     "inputs": [
       {
         "type": "button",
         "display_as": "button",
         "label": "",
         "options": [
-          "Wollte das hier mal ausprobieren.",
-          "Mir ist langweilig"
+          "Ja",
+          "Nein"
         ]
       }
     ],
     "rules": {},
     "destination": {
-      "0": "ausprobieren",
-      "1": "langweile-level"
+      "0": "ankundigungsart",
+      "1": "musterschreibenankundig"
     },
     "action": {}
   },
-  "nicht-sehr-langweilig": {
-    "name": "Nicht sehr langweilig",
-    "text": "<p><strong>Wo</strong> ist dann das <abbr title=\"Ernsthafte Herausforderung, f\u00fcr die du meine Hilfe brauchst.\">Problem</abbr>?</p>",
-    "inputs": [],
+  "nur-309-euro": {
+    "name": "Nur 3,09 Euro",
+    "text": "<p>In diesem Fall sind nur Geb&uuml;hren in H&ouml;he von <strong>3,09 Euro</strong> zul&auml;ssig.&nbsp;</p>\n\n<p>M&ouml;chten Sie ein Musterschreiben erhalten?</p>",
+    "inputs": [
+      {
+        "type": "button",
+        "display_as": "button",
+        "label": "",
+        "options": [
+          "Ja",
+          "Nein"
+        ]
+      }
+    ],
     "rules": {},
-    "destination": {},
+    "destination": {
+      "0": "musterschreiben",
+      "1": "vielen-dank"
+    },
     "action": {}
   },
-  "sehr-langweilig": {
-    "name": "Sehr langweilig",
-    "text": "<p><b>[[langweile-level]]</b> ist nicht ohne. Was davon hast du denn probiert?</p>",
+  "ankundigungsart": {
+    "name": "Ank\u00fcndigungsart",
+    "text": "<p>Wie wurden Sie&nbsp;nach der fehlgeschlagenen Lastschrift benachrichtigt?</p>",
     "inputs": [
       {
         "type": "list",
         "label": "",
         "options": [
-          "Buch lesen",
-          "Coden lernen",
-          "Alkohol",
-          "Netflix"
+          "Brief",
+          "SMS",
+          "E-Mail",
+          "Ich habe keine Benachrichtigung erhalten"
         ]
       }
     ],
@@ -119,8 +109,7 @@ tree = {
               "var": "a"
             },
             [
-              "Buch lesen",
-              "Coden lernen"
+              "Brief"
             ]
           ]
         },
@@ -131,31 +120,101 @@ tree = {
               "var": "a"
             },
             [
-              "Alkohol",
-              "Netflix"
+              "SMS"
             ]
           ]
         },
-        "1"
+        "1",
+        {
+          "in": [
+            {
+              "var": "a"
+            },
+            [
+              "E-Mail",
+              "Ich habe keine Benachrichtigung erhalten"
+            ]
+          ]
+        },
+        "2"
       ]
     },
     "destination": {
-      "0": "toll-weiter-so",
-      "1": "das-kannst-du-besser"
+      "0": "nur-4-euro",
+      "1": "nur-309-euro",
+      "2": "nur-3-euro"
     },
     "action": {}
   },
-  "toll-weiter-so": {
-    "name": "Toll, weiter so!",
-    "text": "Toll [[ausprobieren.vorname]], weiter so!",
+  "angemessen": {
+    "name": "Angemessen",
+    "text": "<p>Eine Geb&uuml;hr von bis zu vier Euro ist leider angemessen.</p>",
     "inputs": [],
     "rules": {},
     "destination": {},
     "action": {}
   },
-  "das-kannst-du-besser": {
-    "name": "das kannst du besser",
-    "text": "<p>Ich bin dezent entt&auml;uscht. Mach mal was <abbr title=\"DISNEY + IST NICHTS VERN\u00dcFTIGES!\">Vern&uuml;ftiges</abbr>.</p>",
+  "nur-4-euro": {
+    "name": "Nur 4 Euro",
+    "text": "<p>In diesem Fall sind nur Geb&uuml;hren in H&ouml;he von <strong>4,00&nbsp;Euro </strong>zul&auml;ssig.&nbsp;</p>\n\n<p>M&ouml;chten Sie ein Musterschreiben erhalten?</p>",
+    "inputs": [
+      {
+        "type": "button",
+        "display_as": "button",
+        "label": "",
+        "options": [
+          "Ja",
+          "Nein"
+        ]
+      }
+    ],
+    "rules": {},
+    "destination": {
+      "0": "musterschreiben",
+      "1": "vielen-dank"
+    },
+    "action": {}
+  },
+  "nur-3-euro": {
+    "name": "Nur 3 Euro",
+    "text": "<p>In diesem Fall sind nur Geb&uuml;hren in H&ouml;he von <strong>3,00&nbsp;Euro</strong> zul&auml;ssig.&nbsp;</p>\n\n<p>M&ouml;chten Sie ein Musterschreiben erhalten?</p>",
+    "inputs": [
+      {
+        "type": "button",
+        "display_as": "button",
+        "label": "",
+        "options": [
+          "Ja",
+          "Nein"
+        ]
+      }
+    ],
+    "rules": {},
+    "destination": {
+      "0": "musterschreiben",
+      "1": "vielen-dank"
+    },
+    "action": {}
+  },
+  "vielen-dank": {
+    "name": "Vielen Dank",
+    "text": "<p>Vielen Dank, wir hoffen, dass wir Ihnen weiterhelfen konnten.</p>",
+    "inputs": [],
+    "rules": {},
+    "destination": {},
+    "action": {}
+  },
+  "musterschreiben": {
+    "name": "Musterschreiben",
+    "text": "<p>Sehr geehrte Damen und Herren,</p>\n\n<p>die pauschale Absetzung von R&uuml;cklastschriftgeb&uuml;hren i. H. v. [[gebuhrenhohe]]&nbsp;Euro ist nach st&auml;ndiger Rspr. nicht zul&auml;ssig, lediglich die tats&auml;chlich angefallenen Geb&uuml;hren sind erstattungsf&auml;hig, auch d&uuml;rfen diese das Interbankengeld von drei Euro nicht erheblich &uuml;bersteigen (LG K&ouml;ln, 21.12.2016&nbsp;- 26 O 331/15; &nbsp;LG Hamburg, 06.05.2014, 312 O 373/13; OLG S-H, 26.03.2014, 2 U 7/12).</p>\n\n<p>Daher widerspreche ich der Zahlung der pauschalen R&uuml;cklastschriftgeb&uuml;hr i.H.v. [[gebuhrenhohe]]&nbsp;Euro und bitte um Aufstellung der tats&auml;chlich angefallen Kosten. Gerne &uuml;berweise ich auch direkt die fehlende Rate&nbsp;und &uuml;berweise die angemessenen R&uuml;cklastschriftgeb&uuml;hren in einer seperaten &Uuml;berweisung. Bitte geben Sie mir Bescheid, wenn Sie dies w&uuml;nschen.&nbsp;Des Weiteren bitte ich darum, auch die folgenden Raten weiterhin per Lastschrift einzuziehen. Sollte aufgrund der fehlgeschlagenen Lastschrift die Neuerteilung eines Mandats n&ouml;tig sein, bitte ich um Benachrichtigung.</p>\n\n<p><br>\n&nbsp;Mit freundlichen Gr&uuml;&szlig;en</p>\n\n<p>&nbsp;</p>",
+    "inputs": [],
+    "rules": {},
+    "destination": {},
+    "action": {}
+  },
+  "musterschreibenankundig": {
+    "name": "MusterschreibenAnk\u00fcndig",
+    "text": "<p>Sehr geehrte Damen und Herren,</p>\n\n<p>sie haben es unterlassen, die von Ihnen eingezogenen Lastschrift anzuk&uuml;ndigen. Aufgrund der fehlenden&nbsp;SEPA Pre-Notification haben Sie keinen Anpspruch auf Erstattung der R&uuml;cklastschriftgeb&uuml;hren.</p>\n\n<p>Mit freundlichen Gr&uuml;&szlig;en</p>\n\n<p>&nbsp;</p>",
     "inputs": [],
     "rules": {},
     "destination": {},
