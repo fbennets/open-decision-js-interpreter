@@ -3,14 +3,14 @@
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 /*!
- * Open Decision JavaScript Interpreter v0.1
+ * Open Decision JavaScript Interpreter v0.1.1
  * https://open-decision.org/
  *
  * Copyright Finn Schädlich, Open Decision Project
  * Released under the MIT license
  * https://github.com/fbennets/open-decision/blob/master/LICENSE
  *
- * Date: 2020-04-21
+ * Date: 2020-05-03
  */
 window.openDecision = function () {
   "use strict"; // The node of the tree the user is currently seeing
@@ -26,6 +26,8 @@ window.openDecision = function () {
   selectedDiv,
       // Boolean to determine if the device can vibrate
   supportsVibration,
+      // Boolean to determine if HTML5 file API is available
+  supportsFileApi,
       // Object  to expose the internal functions
   expose = {},
       //CSS for UI elements
@@ -34,8 +36,13 @@ window.openDecision = function () {
   var COMPATIBLE_VERSIONS = [0.1],
       //default CSS for UI elements
   defaultCss = {
+    container: {
+      headingContainer: "",
+      questionContainer: "",
+      inputContainer: "",
+      controlsContainer: ""
+    },
     heading: "",
-    inputContainer: "",
     answerButton: "btn btn-primary ml-2",
     answerList: "",
     numberInput: "",
@@ -48,47 +55,40 @@ window.openDecision = function () {
     controls: {
       submitButton: "btn btn-primary ml-2 mt-3",
       restartButton: "btn btn-primary ml-2 mt-3",
-      backButton: "btn btn-primary ml-2 mt-3"
+      backButton: "btn btn-primary ml-2 mt-3",
+      saveProgressButton: "btn btn-primary ml-2 mt-3",
+      saveDataInputField: ""
     }
   };
 
   expose.init = function (path, divId) {
     var customCss = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    var allowSave = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
     tree = path;
-    selectedDiv = divId;
+    selectedDiv = divId; //Set the css styling and overwrite defaults if custom styling was provided
+
     css = { ...defaultCss,
       ...customCss
     };
+    log = {
+      'nodes': [],
+      'answers': {}
+    }; //Sets the supportsVibration for mobile devices
 
-    try {
-      window.navigator.vibrate(1);
-      supportsVibration = true;
-    } catch (e) {
-      supportsVibration = false;
+    deviceCanVibrate(); //Sets the supportsFileApi for saving the state
+
+    if (!allowSave) {
+      supportsFileApi = false;
+    } else {
+      checkFileApi();
     }
 
-    var compatible = false;
+    ; //Check if provided data is compatible with interpreter version
 
-    for (var i = 0; i < COMPATIBLE_VERSIONS.length; i++) {
-      if (COMPATIBLE_VERSIONS[i] === tree.header.version) {
-        compatible = true;
-      }
-    }
-
-    if (!compatible) {
-      document.getElementById(selectedDiv).innerHTML = "The provided file uses the Open Decision dataformat version ".concat(tree.header.version, ". This library only supports ").concat(COMPATIBLE_VERSIONS, ".");
-      throw {
-        name: "IncompatibleVersion",
-        message: "The provided file uses the Open Decision dataformat version ".concat(tree.header.version, ". This library only supports ").concat(COMPATIBLE_VERSIONS, "."),
-        toString: function toString() {
-          return this.name + ": " + this.message;
-        }
-      };
-    }
+    checkCompatibility(); //Start rendering the tree
 
     displayTree();
   }; // Listener for hashchange in the URL if the user clicks the browser's back-button
-  // The hash tells us the node name, that is currently displayed
 
 
   window.onhashchange = function () {
@@ -109,17 +109,11 @@ window.openDecision = function () {
 
       displayNode();
     }
-  }; // Check for vars that need to be replaced in displayNode
-  //Keep track of all inputs in this one node
-
+  };
 
   function displayTree() {
     currentNode = tree.header.start_node;
-    preString = "<h3 class=\"".concat(css.heading, "\">").concat(tree.header.tree_name, "</h3><br>");
-    log = {
-      'nodes': [],
-      'answers': {}
-    };
+    preString = "<div class=\"".concat(css.container.headingContainer, "\"><h3 class=\"").concat(css.heading, "\">").concat(tree.header.tree_name, "</h3></div><br>");
     displayNode();
   }
 
@@ -127,43 +121,10 @@ window.openDecision = function () {
 
   function displayNode() {
     location.hash = currentNode;
-    var question = tree[currentNode].text; //Replace vars
-    //Match double square brackets
+    var question = tree[currentNode].text; //Replace in-text variables
 
-    var regExp = /\[\[([^\]]+)]]/g;
-    var match = regExp.exec(question);
-
-    while (match != null) {
-      var answer = void 0;
-      match[1] = match[1].trim();
-      var period = match[1].indexOf('.');
-
-      if (period !== -1) {
-        var node = match[1].substring(0, period);
-        var id = match[1].substring(period + 1);
-        answer = node in log.answers ? log.answers[node][id] : "MISSING";
-      } else {
-        answer = match[1] in log.answers ? log.answers[match[1]] : "MISSING";
-      }
-
-      if (typeof answer === 'number') {
-        try {
-          var answerText = tree[match[1]].inputs[0].options[answer];
-
-          if (answerText !== undefined) {
-            answer = answerText;
-          }
-        } catch {}
-      } else if (_typeof(answer) === 'object') {
-        answer = log.answers[match[1]].a;
-      }
-
-      ;
-      question = question.replace(match[0], answer);
-      match = regExp.exec(question);
-    }
-
-    var string = "".concat(preString).concat(question, "<br><div id=\"od-input-div\" class=\"").concat(css.inputContainer, "\">");
+    question = replaceVars(question, log.answers);
+    var string = "".concat(preString, "<div class=\"").concat(css.container.questionContainer, "\"").concat(question, "</div><br><div id=\"od-input-div\" class=\"").concat(css.container.inputContainer, "\">");
     var inputCounter = {
       'buttonsCount': 0,
       'listCount': 0,
@@ -213,9 +174,26 @@ window.openDecision = function () {
       string += "<br><button type=\"button\" class=\"".concat(css.controls.submitButton, "\" id=\"submit-button\">Submit</button>");
     }
 
-    string += "</div><br><button type=\"button\" class=\" ".concat(css.controls.restartButton, "\" id=\"restart-button\">Restart</button><button type=\"button\" class=\"").concat(css.controls.backButton, "\" id=\"back-button\">Back</button>");
+    string += "</div><br><div class=\"".concat(css.container.controlsContainer, "\"><button type=\"button\" class=\"").concat(css.controls.restartButton, "\" id=\"restart-button\">Restart</button><button type=\"button\" class=\"").concat(css.controls.backButton, "\" id=\"back-button\">Back</button>");
+
+    if (supportsFileApi) {
+      if (currentNode === tree.header.start_node) {
+        string += "<input class=\"".concat(css.controls.saveDataInputField, "\" accept=\"application/JSON\" type=\"file\" id=\"files\" name=\"files[]\"/></div>");
+      } else {
+        string += "<button type=\"button\" class=\" ".concat(css.controls.saveProgressButton, "\" id=\"save-progress-button\">Save Progress</button></div>");
+      }
+    } else {
+      string += '</div>';
+    }
+
+    ;
     document.getElementById(selectedDiv).innerHTML = string;
-    document.addEventListener("click", listener);
+
+    if (supportsFileApi && currentNode === tree.header.start_node) {
+      document.getElementById(selectedDiv).querySelector('#files').addEventListener('change', loadSaveData, false);
+    }
+
+    document.getElementById(selectedDiv).addEventListener("click", listener);
   }
 
   ;
@@ -231,7 +209,7 @@ window.openDecision = function () {
       var answerId = parseInt(target.value);
       checkAnswer(answerId, 'button');
     } else if (target.id == 'submit-button') {
-      var inputs = document.getElementById('od-input-div').querySelectorAll('.od-input');
+      var inputs = document.getElementById(selectedDiv).querySelector('#od-input-div').querySelectorAll('.od-input');
       var answer = {};
       inputs.forEach(function (i) {
         if (i.classList.contains('list-select')) {
@@ -242,7 +220,8 @@ window.openDecision = function () {
         } else if (i.classList.contains('date-input')) {
           answer['a'] = i.value;
         } else if (i.classList.contains('free-text')) {
-          answer[i.id] = i.value;
+          // answer[i.id] = i.value;
+          answer['a'] = i.value;
         }
       });
       checkAnswer(answer);
@@ -266,6 +245,24 @@ window.openDecision = function () {
       }
 
       displayNode();
+    } else if (target.id == 'save-progress-button') {
+      // Save log and current node
+      var saveData = {
+        header: { ...tree.header
+        },
+        log: { ...log
+        },
+        currentNode: currentNode
+      };
+      var saveDataString = JSON.stringify(saveData);
+      var filename = "".concat(tree.header.tree_name, " - Saved.json");
+      var element = document.createElement('a');
+      element.setAttribute('href', 'data:application/JSON;charset=utf-8,' + encodeURIComponent(saveDataString));
+      element.setAttribute('download', filename);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
     }
   }
 
@@ -289,12 +286,124 @@ window.openDecision = function () {
       currentNode = tree[currentNode].destination[rule];
     }
 
-    console.log(log);
     displayNode();
   }
 
+  ; //Helper functions
+  //Checks if device supports Vibration
+
+  function deviceCanVibrate() {
+    try {
+      window.navigator.vibrate(1);
+      supportsVibration = true;
+    } catch (e) {
+      supportsVibration = false;
+    }
+  }
+
+  ; // Check for the various File API support.
+
+  function checkFileApi() {
+    if (window.File && window.FileReader) {
+      supportsFileApi = true;
+    } else {
+      supportsFileApi = false;
+    }
+  }
+
+  ; //Checks if loaded data is  compatible with interpreter version
+
+  function checkCompatibility() {
+    var compatible = false;
+
+    for (var i = 0; i < COMPATIBLE_VERSIONS.length; i++) {
+      if (COMPATIBLE_VERSIONS[i] === tree.header.version) {
+        compatible = true;
+      }
+    }
+
+    if (!compatible) {
+      document.getElementById(selectedDiv).innerHTML = "The provided file uses the Open Decision dataformat version ".concat(tree.header.version, ". This library only supports ").concat(COMPATIBLE_VERSIONS, ".");
+      throw {
+        name: "IncompatibleVersion",
+        message: "The provided file uses the Open Decision dataformat version ".concat(tree.header.version, ". This library only supports ").concat(COMPATIBLE_VERSIONS, "."),
+        toString: function toString() {
+          return this.name + ": " + this.message;
+        }
+      };
+    }
+  }
+
+  ; //Load the JSON file storing the progress
+
+  function loadSaveData(evt) {
+    var f = evt.target.files[0];
+
+    if (f.type === 'application/json') {
+      var reader = new FileReader();
+
+      reader.onload = function (theFile) {
+        return function (e) {
+          var savedData = JSON.parse(e.target.result);
+
+          if (savedData.header.tree_slug === tree.header.tree_slug) {
+            currentNode = savedData.currentNode;
+            log = savedData.log;
+            displayNode();
+          } else {
+            alert('Please load the correct save data.');
+          }
+        };
+      }(f); // Read in the JSON
+
+
+      reader.readAsText(f);
+    }
+  }
+
+  ; //Replace vars
+
+  function replaceVars(string, varsLocation) {
+    //Match double square brackets
+    var regExp = /\[\[([^\]]+)]]/g;
+    var match = regExp.exec(string);
+
+    while (match != null) {
+      var answer = void 0;
+      match[1] = match[1].trim();
+      var period = match[1].indexOf('.');
+
+      if (period !== -1) {
+        var node = match[1].substring(0, period);
+        var id = match[1].substring(period + 1);
+        answer = node in varsLocation ? varsLocation[node][id] : "MISSING";
+      } else {
+        answer = match[1] in varsLocation ? varsLocation[match[1]] : "MISSING";
+      }
+
+      if (typeof answer === 'number') {
+        try {
+          var answerText = tree[match[1]].inputs[0].options[answer];
+
+          if (answerText !== undefined) {
+            answer = answerText;
+          }
+        } catch {}
+      } else if (_typeof(answer) === 'object') {
+        try {
+          answer = varsLocation[match[1]].a;
+        } catch {}
+      }
+
+      ;
+      string = string.replace(match[0], answer);
+      match = regExp.exec(string);
+    }
+
+    return string;
+  }
+
   ; // To do:
-  // Save/download progress function
   // Validate user input and give errors
   // JS translation
 
