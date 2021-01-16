@@ -60,7 +60,7 @@ supportsFileApi,
  };
 
 
-expose.init = function (path, divId, customCss = {}, allowSave = true) {
+expose.init = function (path, divId, customCss = {}, allowSave = false) {
   tree = path;
   selectedDiv = divId;
   //Set the css styling and overwrite defaults if custom styling was provided
@@ -171,9 +171,9 @@ if ((tree[currentNode].inputs.length !== 0)&&(tree[currentNode].inputs[0].type !
   document.getElementById(selectedDiv).innerHTML = string;
 
   if (supportsFileApi && (currentNode === tree.header.start_node)) {
-    document.getElementById('files').addEventListener('change', loadSaveData, false);
+    document.getElementById(selectedDiv).querySelector('#files').addEventListener('change', loadSaveData, false);
     }
-  document.addEventListener( "click", listener );
+  document.getElementById(selectedDiv).addEventListener( "click", listener );
 };
 
 
@@ -190,7 +190,7 @@ if (supportsVibration){
     checkAnswer(answerId, 'button');
 }
   else if (target.id == 'submit-button') {
-    let inputs = document.getElementById('od-input-div').querySelectorAll('.od-input');
+    let inputs = document.getElementById(selectedDiv).querySelector('#od-input-div').querySelectorAll('.od-input');
     let answer = {};
 
     inputs.forEach(function(i){
@@ -202,7 +202,8 @@ if (supportsVibration){
       } else if (i.classList.contains('date-input')){
         answer['a'] = i.value;
       } else if (i.classList.contains('free-text')){
-          answer[i.id] = i.value;
+          // answer[i.id] = i.value;
+        answer['a'] = i.value;
       }});
   checkAnswer(answer);
   } else if (target.id == 'restart-button') {

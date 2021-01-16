@@ -2,12 +2,6 @@
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 /*!
  * Open Decision JavaScript Interpreter v0.1.1
  * https://open-decision.org/
@@ -69,11 +63,13 @@ window.openDecision = function () {
 
   expose.init = function (path, divId) {
     var customCss = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    var allowSave = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+    var allowSave = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
     tree = path;
     selectedDiv = divId; //Set the css styling and overwrite defaults if custom styling was provided
 
-    css = _objectSpread(_objectSpread({}, defaultCss), customCss);
+    css = { ...defaultCss,
+      ...customCss
+    };
     log = {
       'nodes': [],
       'answers': {}
@@ -194,10 +190,10 @@ window.openDecision = function () {
     document.getElementById(selectedDiv).innerHTML = string;
 
     if (supportsFileApi && currentNode === tree.header.start_node) {
-      document.getElementById('files').addEventListener('change', loadSaveData, false);
+      document.getElementById(selectedDiv).querySelector('#files').addEventListener('change', loadSaveData, false);
     }
 
-    document.addEventListener("click", listener);
+    document.getElementById(selectedDiv).addEventListener("click", listener);
   }
 
   ;
@@ -213,7 +209,7 @@ window.openDecision = function () {
       var answerId = parseInt(target.value);
       checkAnswer(answerId, 'button');
     } else if (target.id == 'submit-button') {
-      var inputs = document.getElementById('od-input-div').querySelectorAll('.od-input');
+      var inputs = document.getElementById(selectedDiv).querySelector('#od-input-div').querySelectorAll('.od-input');
       var answer = {};
       inputs.forEach(function (i) {
         if (i.classList.contains('list-select')) {
@@ -224,7 +220,8 @@ window.openDecision = function () {
         } else if (i.classList.contains('date-input')) {
           answer['a'] = i.value;
         } else if (i.classList.contains('free-text')) {
-          answer[i.id] = i.value;
+          // answer[i.id] = i.value;
+          answer['a'] = i.value;
         }
       });
       checkAnswer(answer);
@@ -251,8 +248,10 @@ window.openDecision = function () {
     } else if (target.id == 'save-progress-button') {
       // Save log and current node
       var saveData = {
-        header: _objectSpread({}, tree.header),
-        log: _objectSpread({}, log),
+        header: { ...tree.header
+        },
+        log: { ...log
+        },
         currentNode: currentNode
       };
       var saveDataString = JSON.stringify(saveData);
@@ -389,11 +388,11 @@ window.openDecision = function () {
           if (answerText !== undefined) {
             answer = answerText;
           }
-        } catch (_unused) {}
+        } catch {}
       } else if (_typeof(answer) === 'object') {
         try {
           answer = varsLocation[match[1]].a;
-        } catch (_unused2) {}
+        } catch {}
       }
 
       ;
