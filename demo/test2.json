@@ -1,0 +1,47 @@
+{
+  "header": {
+    "version": 0.1,
+    "build_date": "2020-04-21",
+    "tree_name": "Test",
+    "tree_slug": "test",
+    "start_node": "a",
+    "vars": {}
+  },
+  "b": {
+    "name": "B",
+    "text": "<p>Hier gibt es nichts zu sehen.</p>",
+    "inputs": [],
+    "rules": {},
+    "destination": {},
+    "action": {}
+  },
+  "c": {
+    "name": "C",
+    "text": "<p>Du hast &quot;[[a]]&quot; gew&auml;hlt, deswegen bist du nun hier.</p>",
+    "inputs": [],
+    "rules": {},
+    "destination": {},
+    "action": {}
+  },
+  "a": {
+    "name": "A",
+    "text": "<p>A</p>",
+    "inputs": [
+      {
+        "type": "button",
+        "display_as": "button",
+        "label": "",
+        "options": [
+          "Hallo",
+          "Tsch\u00fcss"
+        ]
+      }
+    ],
+    "rules": {},
+    "destination": {
+      "0": "b",
+      "1": "c"
+    },
+    "action": {}
+  }
+}

@@ -11,13 +11,27 @@
 <div id="publish-div">
 </div>
 
-<script type="text/javascript" src="logic.js"></script>
-<script type="text/javascript" src="../od-js-interpreter-es6.js"></script>
-<script type="text/javascript" src="test.json"></script>
+<div id="second-div" style="background-color:black;">
+</div>
+
+<!-- <script type="text/javascript" src="logic.js"></script> -->
+<script type="text/javascript" src="../dist/open-decision-js-core.js"></script>
+<!-- <script type="text/javascript" src="test.json"></script> -->
+<script type="text/javascript" src="test3.js"></script>
 <script type="text/javascript">
 
   document.addEventListener("DOMContentLoaded", function(){
-openDecision.init (tree, "publish-div", {answerButton:"btn btn-secondary ml-2 big-font"});
+    let inter = new OpenDecisionJSCore (`{
+   "header":{
+      "tree_name":"hello",
+      "start_node":"test"
+   },
+   "test":{
+      "text":"Was geht?",
+      "inputs":"ABC"
+   }
+}`);
+console.log(inter.startRendering());
 })
 </script>
 </body>
