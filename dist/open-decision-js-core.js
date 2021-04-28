@@ -1,5 +1,14 @@
-var OpenDecisionJSCore;
-/******/ (() => { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["OpenDecisionJSCore"] = factory();
+	else
+		root["OpenDecisionJSCore"] = factory();
+})(self, function() {
+return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 138:
@@ -675,7 +684,8 @@ http://ricostacruz.com/cheatsheets/umdjs.html
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
 /******/ 	var __webpack_exports__ = __webpack_require__(138);
-/******/ 	OpenDecisionJSCore = __webpack_exports__;
 /******/ 	
+/******/ 	return __webpack_exports__;
 /******/ })()
 ;
+});

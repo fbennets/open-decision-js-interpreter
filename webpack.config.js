@@ -12,7 +12,7 @@ module.exports = {
 
     library: {
         name: 'OpenDecisionJSCore',
-        type: 'var',
+        type: 'umd',
       },
   },
 };
