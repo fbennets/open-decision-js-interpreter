@@ -12,91 +12,137 @@
 
 require("./logic.js");
 
-("use strict");
-class ODCore{
+/**
+ * @returns {string} a nodeId.
+ */
+const getNextNodeId = (node, answer) => {
+  // If there is a default destination we can directly go there. There cannot be any rules, because they would
+  // have no pourpose!
+  if ("default" in node.destination) return node.destination["default"];
 
+  //---------------------------------------------------------------------------
+  // Depreceate!
+  // This handles an edge case for button answer types, that we want to remove
+  if (Object.keys(node.rules).length === 0) {
+    return node.destination[answer];
+  }
+  //---------------------------------------------------------------------------
+
+  // If there is no default destination we expect rules to be present. The application of these rules determines
+  // the next node.
+  const logicResult = jsonLogic.apply(node.rules, answer);
+  return node.destination[logicResult];
+};
+
+("use strict");
+class ODCore {
   constructor(json, allowSave = false) {
+    /**
+     * Represents the entire decision tree.
+     */
     this.tree = json;
+    /**
+     * The state of the currently active node for this instance of the interpretation.
+     */
     this.currentNode = this.tree.header.start_node;
-    this.log = { nodes: [], answers: {} };
-    this.supportsFileApi = false
+    /**
+     * The log of visited nodes and given answers.
+     */
+    this.history = { nodes: [], answers: {} };
+    /**
+     * Represents the current state of the interpretation.
+     */
+    this.state = "initialized";
+    this.supportsFileApi = false;
     this.COMPATIBLE_VERSIONS = [0.1];
   }
 
-  startRendering() {
-    this.currentNode = this.tree.header.start_node;
-    return this.renderNode();
+  /**
+   * First function to be called to start the interpretation.
+   */
+  startInterpretation() {
+    this.state = "started";
+    return this.getCurrentNode();
   }
 
-  renderNode() {
+  /**
+   * Used to receive the necessary data to render the `currentNode`.
+   * @returns JSON String of the `currentNodes` `renderData`
+   */
+  getCurrentNode() {
     //Set render data and replace in-text variables
     let renderData = {
-      question: this.replaceVars(this.tree[this.currentNode].text, this.log.answers),
+      question: this.replaceVars(
+        this.tree[this.currentNode].text,
+        this.history.answers
+      ),
       inputs: this.tree[this.currentNode].inputs,
     };
-    return JSON.stringify(renderData);
+    return renderData;
   }
 
-  checkAnswer(answer) {
-    this.log["nodes"].push(this.currentNode);
-    this.log["answers"][this.currentNode] = answer;
+  /**
+   * Interprets the answer received from the user to determine the next node.
+   */
+  interpret(answer) {
+    this.state = "interpreting";
 
-    if (Object.keys(this.tree[this.currentNode].rules).length === 0) {
-      if ("default" in this.tree[this.currentNode].destination) {
-        // If only free text
-        this.currentNode = this.tree[this.currentNode].destination["default"];
-      } else {
-        // If only buttons
-        this.currentNode = this.tree[this.currentNode].destination[answer];
-      }
-    } else {
-      // If we have rules
-      let rule = jsonLogic.apply(this.tree[this.currentNode].rules, answer);
-      this.currentNode = this.tree[this.currentNode].destination[rule];
-    }
-    this.renderNode();
+    this.history["nodes"].push(this.currentNode);
+    this.history["answers"][this.currentNode] = answer;
+
+    this.currentNode = getNextNodeId(this.tree[this.currentNode], answer);
+
+    this.state = "idle";
+
+    this.getCurrentNode();
   }
 
   //Helper functions
 
-  get appName(){
+  get treeName() {
     return this.tree.header.tree_name;
-  } 
+  }
 
+  /**
+   * Allows to revert the last selection.
+   */
   goBack() {
-    if (this.log.nodes.length > 0) {
-      delete this.log.answers[this.currentNode];
-      this.currentNode = this.log.nodes.pop();
+    if (this.history.nodes.length > 0) {
+      delete this.history.answers[this.currentNode];
+      this.currentNode = this.history.nodes.pop();
     } else {
       this.currentNode = this.tree.header.start_node;
-      this.log = { nodes: [], answers: {} };
+      this.history = { nodes: [], answers: {} };
     }
-    this.renderNode();
+    this.getCurrentNode();
   }
 
-  restart() {
+  /**
+   * Restart the Interpretation.
+   */
+  reset() {
     this.currentNode = this.tree.header.start_node;
-    this.log = { nodes: [], answers: {} };
-    this.renderNode();
+    this.history = { nodes: [], answers: {} };
+    this.getCurrentNode();
   }
 
-  getCurrentState() {
+  getInterpretationState() {
     // Save log and current node
     let stateData = {
       header: { ...this.tree.header },
-      log: { ...this.log },
+      log: { ...this.history },
       currentNode: this.currentNode,
     };
     return JSON.stringify(stateData);
   }
 
   //Load the JSON file storing the progress
-  loadSavedState(savedState) {
+  setInterpretationState(savedState) {
     let savedData = JSON.parse(savedState);
     if (savedData.header.tree_slug === this.tree.header.tree_slug) {
       this.currentNode = savedData.currentNode;
-      this.log = savedData.log;
-      this.renderNode();
+      this.history = savedData.log;
+      this.getCurrentNode();
     } else {
       alert("Please load the correct save data.");
     }
@@ -159,5 +205,6 @@ class ODCore{
   // To do:
   // Validate user input and give errors
   // JS translation
-};
+}
+
 export default ODCore;
