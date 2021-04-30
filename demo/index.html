@@ -21,17 +21,10 @@
 <script type="text/javascript">
 
   document.addEventListener("DOMContentLoaded", function(){
-    let inter = new OpenDecisionJSCore (`{
-   "header":{
-      "tree_name":"hello",
-      "start_node":"test"
-   },
-   "test":{
-      "text":"Was geht?",
-      "inputs":"ABC"
-   }
-}`);
+    let inter = new OpenDecisionJSCore(test);
 console.log(inter.startRendering());
+inter.checkAnswer("Weiter");
+
 })
 </script>
 </body>

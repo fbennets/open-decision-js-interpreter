@@ -13,87 +13,79 @@
 require("./logic.js");
 
 ("use strict");
-class Render{
-
-  // The decision tree that is being rendered
-  #tree;
-  // The node of the tree the user is currently seeing
-  #currentNode;
-  // Used to log the nodes shown and answers given by the user, used for history
-  #log;
-  // Boolean to determine if a file API is available
-  #supportsFileApi;
-   //version of  the Interprete
-  static COMPATIBLE_VERSIONS = [0.1];
+class ODCore{
 
   constructor(json, allowSave = false) {
-    this.#tree = JSON.parse(json);
-    this.#currentNode = this.#tree.header.start_node;
-    this.#log = { nodes: [], answers: {} };
-    this.#supportsFileApi = false
+    this.tree = json;
+    this.currentNode = this.tree.header.start_node;
+    this.log = { nodes: [], answers: {} };
+    this.supportsFileApi = false
+    this.COMPATIBLE_VERSIONS = [0.1];
   }
 
   startRendering() {
-    this.#currentNode = this.#tree.header.start_node;
-    return this.#renderNode();
+    this.currentNode = this.tree.header.start_node;
+    return this.renderNode();
   }
 
-  #renderNode() {
+  renderNode() {
     //Set render data and replace in-text variables
     let renderData = {
-      appName: this.#tree.header.tree_name,
-      question: this.replaceVars(this.#tree[this.#currentNode].text, this.#log.answers),
-      inputs: this.#tree[this.#currentNode].inputs,
+      question: this.replaceVars(this.tree[this.currentNode].text, this.log.answers),
+      inputs: this.tree[this.currentNode].inputs,
     };
-    let string = JSON.stringify(renderData);
-    return string;
+    return JSON.stringify(renderData);
   }
 
-  checkAnswer(answer, inputType) {
-    this.#log["nodes"].push(this.#currentNode);
-    this.#log["answers"][this.#currentNode] = answer;
+  checkAnswer(answer) {
+    this.log["nodes"].push(this.currentNode);
+    this.log["answers"][this.currentNode] = answer;
 
-    if (Object.keys(this.#tree[this.#currentNode].rules).length === 0) {
-      if ("default" in this.#tree[this.#currentNode].destination) {
+    if (Object.keys(this.tree[this.currentNode].rules).length === 0) {
+      if ("default" in this.tree[this.currentNode].destination) {
         // If only free text
-        this.#currentNode = this.#tree[this.#currentNode].destination["default"];
+        this.currentNode = this.tree[this.currentNode].destination["default"];
       } else {
         // If only buttons
-        this.#currentNode = this.#tree[this.#currentNode].destination[answer];
+        this.currentNode = this.tree[this.currentNode].destination[answer];
       }
     } else {
       // If we have rules
-      let rule = jsonLogic.apply(this.#tree[this.#currentNode].rules, answer);
-      this.#currentNode = this.#tree[this.#currentNode].destination[rule];
+      let rule = jsonLogic.apply(this.tree[this.currentNode].rules, answer);
+      this.currentNode = this.tree[this.currentNode].destination[rule];
     }
-    this.#renderNode();
+    this.renderNode();
   }
 
   //Helper functions
 
+  get appName(){
+    return this.tree.header.tree_name;
+  } 
+
   goBack() {
-    if (this.#log.nodes.length > 0) {
-      delete this.#log.answers[this.#currentNode];
-      this.#currentNode = this.#log.nodes.pop();
+    if (this.log.nodes.length > 0) {
+      delete this.log.answers[this.currentNode];
+      this.currentNode = this.log.nodes.pop();
     } else {
-      this.#currentNode = this.#tree.header.start_node;
-      this.#log = { nodes: [], answers: {} };
+      this.currentNode = this.tree.header.start_node;
+      this.log = { nodes: [], answers: {} };
     }
-    this.#renderNode();
+    this.renderNode();
   }
 
   restart() {
-    this.#currentNode = this.#tree.header.start_node;
-    this.#log = { nodes: [], answers: {} };
-    this.#renderNode();
+    this.currentNode = this.tree.header.start_node;
+    this.log = { nodes: [], answers: {} };
+    this.renderNode();
   }
 
   getCurrentState() {
     // Save log and current node
     let stateData = {
-      header: { ...this.#tree.header },
-      log: { ...this.#log },
-      currentNode: this.#currentNode,
+      header: { ...this.tree.header },
+      log: { ...this.log },
+      currentNode: this.currentNode,
     };
     return JSON.stringify(stateData);
   }
@@ -101,10 +93,10 @@ class Render{
   //Load the JSON file storing the progress
   loadSavedState(savedState) {
     let savedData = JSON.parse(savedState);
-    if (savedData.header.tree_slug === this.#tree.header.tree_slug) {
-      this.#currentNode = savedData.currentNode;
-      this.#log = savedData.log;
-      this.#renderNode();
+    if (savedData.header.tree_slug === this.tree.header.tree_slug) {
+      this.currentNode = savedData.currentNode;
+      this.log = savedData.log;
+      this.renderNode();
     } else {
       alert("Please load the correct save data.");
     }
@@ -114,14 +106,14 @@ class Render{
   checkCompatibility() {
     let compatible = false;
     for (var i = 0; i < COMPATIBLE_VERSIONS.length; i++) {
-      if (COMPATIBLE_VERSIONS[i] === this.#tree.header.version) {
+      if (COMPATIBLE_VERSIONS[i] === this.tree.header.version) {
         compatible = true;
       }
     }
     if (!compatible) {
       throw {
         name: "IncompatibleVersion",
-        message: `The provided file uses the Open Decision dataformat version ${this.#tree.header.version}. This library only supports ${COMPATIBLE_VERSIONS}.`,
+        message: `The provided file uses the Open Decision dataformat version ${this.tree.header.version}. This library only supports ${COMPATIBLE_VERSIONS}.`,
         toString: function () {
           return this.name + ": " + this.message;
         },
@@ -167,5 +159,5 @@ class Render{
   // To do:
   // Validate user input and give errors
   // JS translation
-}
-module.exports = Render;
+};
+export default ODCore;
