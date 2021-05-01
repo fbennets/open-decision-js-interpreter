@@ -1,31 +1,28 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <html>
-<head>
-<title>Demo</title>
-<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
-<link rel="stylesheet" type="text/css" href="styles.css">
-</head>
-<body>
+  <head>
+    <title>Demo</title>
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+  </head>
+  <body>
+    <div id="publish-div"></div>
 
-<div id="publish-div">
-</div>
+    <div id="second-div" style="background-color: black"></div>
 
-<div id="second-div" style="background-color:black;">
-</div>
+    <script type="text/javascript" src="logic.js"></script>
+    <script src="./dist/interpreter.js"></script>
+    <!-- <script type="text/javascript" src="test.json"></script> -->
+    <script src="test3.js"></script>
+    <script>
+      console.log(OpenDecisionJSInterpreter);
 
-<!-- <script type="text/javascript" src="logic.js"></script> -->
-<script type="text/javascript" src="../dist/open-decision-js-core.js"></script>
-<!-- <script type="text/javascript" src="test.json"></script> -->
-<script type="text/javascript" src="test3.js"></script>
-<script type="text/javascript">
-
-  document.addEventListener("DOMContentLoaded", function(){
-    let inter = new OpenDecisionJSCore(test);
-console.log(inter.startRendering());
-inter.checkAnswer("Weiter");
-
-})
-</script>
-</body>
+      document.addEventListener("DOMContentLoaded", function () {
+        let inter = new OpenDecisionJSInterpreter.ODCore(test);
+        console.log(inter.startInterpretation());
+        inter.evaluateUserInput("Weiter");
+      });
+    </script>
+  </body>
 </html>

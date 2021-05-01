@@ -10,7 +10,7 @@
  * Date: 2021-04-27
  */
 
-require("./logic.js");
+import * as jsonLogic from "json-logic-js";
 
 /**
  * @returns {string} a nodeId.
@@ -34,8 +34,13 @@ const getNextNodeId = (node, answer) => {
   return node.destination[logicResult];
 };
 
-("use strict");
-class ODCore {
+export class ODCore {
+  tree: any;
+  currentNode: string;
+  history: { nodes: string[]; answers: Record<string, string> };
+  state: "initialized" | "idle" | "started" | "interpreting";
+  COMPATIBLE_VERSIONS: number[];
+
   constructor(json, allowSave = false) {
     /**
      * Represents the entire decision tree.
@@ -53,7 +58,7 @@ class ODCore {
      * Represents the current state of the interpretation.
      */
     this.state = "initialized";
-    this.supportsFileApi = false;
+    // this.supportsFileApi = false;
     this.COMPATIBLE_VERSIONS = [0.1];
   }
 
@@ -151,15 +156,15 @@ class ODCore {
   //Checks if loaded data is  compatible with interpreter version
   checkCompatibility() {
     let compatible = false;
-    for (var i = 0; i < COMPATIBLE_VERSIONS.length; i++) {
-      if (COMPATIBLE_VERSIONS[i] === this.tree.header.version) {
+    for (var i = 0; i < this.COMPATIBLE_VERSIONS.length; i++) {
+      if (this.COMPATIBLE_VERSIONS[i] === this.tree.header.version) {
         compatible = true;
       }
     }
     if (!compatible) {
       throw {
         name: "IncompatibleVersion",
-        message: `The provided file uses the Open Decision dataformat version ${this.tree.header.version}. This library only supports ${COMPATIBLE_VERSIONS}.`,
+        message: `The provided file uses the Open Decision dataformat version ${this.tree.header.version}. This library only supports ${this.COMPATIBLE_VERSIONS}.`,
         toString: function () {
           return this.name + ": " + this.message;
         },
@@ -187,7 +192,7 @@ class ODCore {
 
       if (typeof answer === "number") {
         try {
-          let answerText = tree[match[1]].inputs[0].options[answer];
+          let answerText = this.tree[match[1]].inputs[0].options[answer];
           if (answerText !== undefined) {
             answer = answerText;
           }
@@ -206,5 +211,3 @@ class ODCore {
   // Validate user input and give errors
   // JS translation
 }
-
-export default ODCore;
