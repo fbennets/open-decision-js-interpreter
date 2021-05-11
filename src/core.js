@@ -84,7 +84,7 @@ class ODCore {
   /**
    * Interprets the answer received from the user to determine the next node.
    */
-  interpret(answer) {
+  evaluateUserInput(answer) {
     this.state = "interpreting";
 
     this.history["nodes"].push(this.currentNode);
