@@ -10,7 +10,7 @@
  * Date: 2021-04-27
  */
 
-require("./logic.js");
+import jsonLogic from "./logic.js";
 
 /**
  * @returns {string} a nodeId.
@@ -94,7 +94,7 @@ class ODCore {
 
     this.state = "idle";
 
-    this.getCurrentNode();
+    return this.getCurrentNode();
   }
 
   //Helper functions
@@ -114,7 +114,7 @@ class ODCore {
       this.currentNode = this.tree.header.start_node;
       this.history = { nodes: [], answers: {} };
     }
-    this.getCurrentNode();
+    return this.getCurrentNode();
   }
 
   /**
@@ -123,7 +123,7 @@ class ODCore {
   reset() {
     this.currentNode = this.tree.header.start_node;
     this.history = { nodes: [], answers: {} };
-    this.getCurrentNode();
+    return this.getCurrentNode();
   }
 
   getInterpretationState() {

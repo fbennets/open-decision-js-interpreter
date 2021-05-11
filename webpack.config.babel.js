@@ -11,7 +11,7 @@ module.exports = [{
     }]
 },
   optimization: {
-    minimize: false
+    minimize: true
 },
   mode: 'production',
   entry: './src/core.js',
@@ -28,17 +28,9 @@ module.exports = [{
   },
 },
 {
-  module: {
-    rules: [{
-        test: /\.js/,
-        exclude: /(node_modules|bower_components)/,
-        use: [{
-            loader: 'babel-loader'
-        }]
-    }]
-},
+
   optimization: {
-    minimize: false
+    minimize: true
 },
   mode: 'production',
   entry: './src/js-interpreter.js',
